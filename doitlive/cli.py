@@ -18,6 +18,7 @@ from doitlive.exceptions import SessionError
 from doitlive.keyboard import (RETURNS, magicrun, magictype, run_command,
                                wait_for)
 from doitlive.python_consoles import PythonRecorderConsole, start_python_player
+from doitlive.openstack_consoles import start_openstack_player
 from doitlive.styling import THEMES, echo, echo_prompt, format_prompt
 from doitlive.termutils import get_default_shell
 
@@ -106,7 +107,7 @@ OPTION_MAP = {
     'commentecho': lambda state, arg: state.commentecho(arg),
 }
 
-SHELL_RE = re.compile(r'```(python|ipython)')
+SHELL_RE = re.compile(r'```(python|ipython|openstack)')
 
 
 def run(commands, shell=None, prompt_template='default', speed=1,
@@ -155,7 +156,7 @@ def run(commands, shell=None, prompt_template='default', speed=1,
             shell_name = shell_match.groups()[0].strip()
             py_commands = []
             more = True
-            while more:  # slurp up all the python code
+            while more:  # slurp up all the sub-console code
                 try:
                     py_command = commands[i].rstrip()
                 except IndexError:
@@ -179,6 +180,8 @@ def run(commands, shell=None, prompt_template='default', speed=1,
                 # dedent all the commands to account for IPython's autoindentation
                 ipy_commands = [textwrap.dedent(cmd) for cmd in py_commands]
                 start_ipython_player(ipy_commands, speed=state['speed'])
+            elif shell_name == 'openstack':
+                start_openstack_player(py_commands, speed=state['speed'])
             else:
                 start_python_player(py_commands, speed=state['speed'])
         else:
